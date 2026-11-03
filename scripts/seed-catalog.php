@@ -137,16 +137,90 @@ $products = array(
             'Dimensi' => '1650 x 880 x 960 mm',
         ),
     ),
+    array(
+        'sku' => 'VIAR-A2',
+        'name' => 'VIAR A2',
+        'category' => 'Sepeda Listrik',
+        'summary' => 'Sepeda listrik ringkas dengan motor 500 W dan jarak tempuh hingga 60 km untuk mobilitas harian.',
+        'description' => 'VIAR A2 dirancang untuk perjalanan jarak dekat dengan posisi berkendara praktis, baterai lead acid 48V 20Ah, dan ban tubeless. Unit ini cocok untuk mobilitas lingkungan perumahan maupun aktivitas harian ringan.',
+        'source' => 'https://viarmotor.com/sepeda-listrik-viar-a2/',
+        'image' => 'https://motor-viar.com/wp-content/uploads/2024/03/A2-White.jpg',
+        'specs' => array(
+            'Power Motor' => '500 W BLDC',
+            'Kecepatan Maksimum' => '25 km/jam',
+            'Jarak Tempuh' => 'Hingga 60 km',
+            'Baterai' => 'Lead Acid 48V 20Ah',
+            'Usia Baterai' => '600-800 siklus',
+            'Suspensi Depan' => 'Teleskopik',
+            'Suspensi Belakang' => 'Peredam Kejut Ganda',
+            'Ban' => '2.50-10 Tubeless',
+            'Dimensi' => '1550 x 660 x 1040 mm',
+        ),
+    ),
+    array(
+        'sku' => 'VIAR-KARYA-300',
+        'name' => 'VIAR Karya 300',
+        'category' => 'Motor Niaga',
+        'summary' => 'Motor niaga roda tiga berkapasitas 270 cc dengan bak panjang dan daya angkut hingga 852 kg.',
+        'description' => 'VIAR Karya 300 ditujukan untuk kebutuhan distribusi dengan muatan lebih besar. Mesin berpendingin air, bak panjang, suspensi belakang pegas daun, dan gigi mundur mendukung operasional usaha.',
+        'source' => 'https://viarmotor.com/commercials-new-karya-300/',
+        'image' => 'https://viarmotor.com/wp-content/uploads/2026/10/3-Head-Banner-KARYA-300Nn.jpg',
+        'specs' => array(
+            'Tipe Mesin' => '4 Langkah OHV',
+            'Volume Langkah' => '270 cc',
+            'Sistem Pendingin' => 'Water Cooler',
+            'Daya Maksimum' => '12,8 kW / 7.000 rpm',
+            'Transmisi' => 'N-1-2-3-4-5 + Reverse Gear',
+            'Kapasitas Bensin' => '16,5 liter',
+            'Daya Angkut Maksimal' => '852 kg',
+            'Dimensi Unit' => '3530 x 1250 x 1350 mm',
+            'Dimensi Bak' => '2000 x 1252 x 375 mm',
+        ),
+    ),
+    array(
+        'sku' => 'VIAR-KARYA-E5',
+        'name' => 'VIAR Karya E5',
+        'category' => 'Motor Niaga',
+        'summary' => 'Kendaraan niaga roda tiga bertenaga listrik dengan daya angkut hingga 442 kg.',
+        'description' => 'VIAR Karya E5 menghadirkan kendaraan angkut listrik untuk operasional usaha. Motor listrik, bak terbuka, rangka penuh, dan kecepatan maksimum 41 km/jam membuatnya sesuai untuk distribusi jarak dekat.',
+        'source' => 'https://viarmotor.com/commercials-karya-e5/',
+        'image' => 'https://viarmotor.com/wp-content/uploads/2026/08/Karya-Listrik-2.jpg',
+        'specs' => array(
+            'Power Motor' => '2500 W - maksimum 4305 W',
+            'Torsi Maksimum' => '448 Nm / 13 rpm',
+            'Kecepatan Maksimum' => '41 km/jam',
+            'Jarak Tempuh' => 'Hingga 50 km',
+            'Baterai' => '72V 58Ah VRLA',
+            'Daya Angkut Maksimal' => '442 kg',
+            'Berat Kosong' => '362 kg',
+            'Dimensi Unit' => '3010 x 1190 x 1370 mm',
+            'Dimensi Bak' => '1500 x 1190 x 370 mm',
+        ),
+    ),
+    array(
+        'sku' => 'VIAR-VITRON-O2',
+        'name' => 'VIAR Vitron O2',
+        'category' => 'Sepeda Listrik',
+        'summary' => 'Sepeda listrik berdaya hingga 700 W dengan jarak tempuh hingga 60 km.',
+        'description' => 'VIAR Vitron O2 merupakan sepeda listrik praktis untuk mobilitas harian. Baterai 48V 12Ah, suspensi teleskopik, peredam kejut ganda, dan ban tubeless mendukung penggunaan yang nyaman.',
+        'source' => 'https://viarmotor.com/sepeda-listrik-viar-vitron-o2/',
+        'image' => 'https://viarmotor.com/wp-content/uploads/2025/01/E-Bike-Banner-header-Vitron-scaled.jpg',
+        'specs' => array(
+            'Power Motor' => '350 W - maksimum 700 W',
+            'Kecepatan Maksimum' => '25 km/jam',
+            'Jarak Tempuh' => 'Hingga 60 km',
+            'Baterai' => 'Lead Acid 48V 12Ah',
+            'Waktu Pengisian' => '5-6 jam',
+            'Suspensi Depan' => 'Teleskopik',
+            'Suspensi Belakang' => 'Peredam Kejut Ganda',
+            'Ban' => '60/90-10 Tubeless',
+            'Dimensi' => '1580 x 650 x 1070 mm',
+        ),
+    ),
 );
 
 function motoshop_seed_content($item) {
-    $rows = '';
-    foreach ($item['specs'] as $label => $value) {
-        $rows .= '<tr><th>' . esc_html($label) . '</th><td>' . esc_html($value) . '</td></tr>';
-    }
-
     return '<p>' . esc_html($item['description']) . '</p>'
-        . '<h2>Spesifikasi</h2><div class="motoshop-spec-wrap"><table class="motoshop-spec-table"><tbody>' . $rows . '</tbody></table></div>'
         . '<p class="motoshop-product-note"><strong>Catatan:</strong> Harga, warna, stok, dan jarak tempuh aktual perlu dikonfirmasi kepada sales cabang. Spesifikasi dapat berubah mengikuti pembaruan produsen.</p>'
         . '<p><a href="' . esc_url($item['source']) . '" target="_blank" rel="noopener">Sumber spesifikasi resmi VIAR</a></p>';
 }

@@ -39,6 +39,28 @@ Alur utamanya adalah **lihat katalog > buka detail > kirim permintaan > sales me
 
 Website ini pada tahap sekarang tidak mewajibkan pembayaran langsung. WooCommerce digunakan sebagai pengelola katalog yang terstruktur. Fitur keranjang, checkout, ongkos kirim, atau pembayaran daring dapat diaktifkan kemudian jika perusahaan memutuskan menjual produk secara langsung.
 
+### Peran WordPress
+
+WordPress adalah dasar sistem, yaitu sistem manajemen konten. Pada proyek ini WordPress menjalankan empat fungsi:
+
+1. **Mengelola konten.** Teks, gambar, dan halaman tersimpan di database MySQL dan ditampilkan lewat tema, sehingga mitra dapat mengubah isi website sendiri tanpa menyentuh kode.
+2. **Pembagian hak akses.** WordPress menyediakan role bawaan yang dikembangkan tema ini menjadi role Operator MotoShop dan Sales MotoShop.
+3. **Formulir dan penyimpanan data calon pelanggan.** Tema membuat tipe konten khusus **Permintaan Motor** (`motoshop_lead`) yang menerima kiriman formulir.
+4. **Statistik internal.** Tema membuat tabel `wp_motoshop_events` yang mencatat kunjungan halaman produk, klik WhatsApp, klik peta, dan pengiriman formulir.
+
+### Peran WooCommerce
+
+WooCommerce dipakai sebagai **mesin katalog**, bukan sebagai kasir. Plugin ini menyediakan struktur data produk, kategori, atribut, galeri, pencarian, dan filter yang sudah matang. Tombol tambah ke keranjang dihapus, checkout dialihkan ke katalog, dan harga dikosongkan agar tampil pesan Hubungi sales. Menu WooCommerce disembunyikan pada dashboard operator dan sales karena seluruh transaksi tetap dilakukan di cabang.
+
+### Dua sisi website
+
+| Aspek | Sisi pengunjung | Sisi pengelola |
+| --- | --- | --- |
+| alamat | `namadomain.com` | `namadomain.com/wp-admin` |
+| pengguna | calon pelanggan | staf cabang |
+| isi | katalog, layanan, formulir | produk, permintaan, statistik, pengaturan |
+| perlu login | tidak | ya |
+
 ## Alur kerja sistem
 
 ### Alur pengunjung
@@ -118,8 +140,9 @@ Masuk ke WordPress lalu buka menu **MotoShop**. Menu ini menjadi pintu kerja uta
 - **Tambah Produk**: membuat unit baru.
 - **Kategori Produk**: mengatur Niaga, Listrik, ATV, dan Trail.
 - **Permintaan Motor**: data calon pembeli dari formulir website.
-- **Pesanan**: pesanan standar WooCommerce jika kelak transaksi online diaktifkan.
+- **Pesanan**: pesanan standar WooCommerce. Website ini tidak memakai transaksi online, sehingga menu ini tidak dipakai dan disembunyikan bagi operator dan sales.
 - **Panduan**: petunjuk kerja langsung di dashboard.
+- **Statistik**: jumlah kunjungan halaman, klik WhatsApp, klik peta, dan permintaan yang masuk.
 
 Menu bawaan WooCommerce tetap ditampilkan karena dibutuhkan untuk konfigurasi teknis. Operator harian cukup memulai dari menu **MotoShop**.
 
@@ -209,7 +232,17 @@ Siapkan data berikut agar proses input tidak terhenti di tengah jalan.
 4. Jangan menyimpan kata sandi pada komputer umum.
 5. Klik avatar di kanan atas lalu pilih **Log Keluar** setelah selesai menggunakan komputer bersama.
 
-> Alamat login, nama pengguna, dan kata sandi tidak dicantumkan dalam dokumen ini demi keamanan.
+> Alamat login, nama pengguna, dan kata sandi tidak dicantumkan dalam dokumen ini demi keamanan. Daftar akun beserta kata sandi sementara diserahkan terpisah pada saat serah terima, dan seluruh pemilik akun wajib menggantinya pada login pertama.
+
+### Akun yang disiapkan
+
+| Nama pengguna | Peran | Tugas utama | Menu yang terlihat |
+| --- | --- | --- | --- |
+| `admin` | Administrator | penyiapan, plugin, backup, pengaturan umum | seluruh menu |
+| `motoshop.operator` | Operator MotoShop | mengelola katalog | Ringkasan, Semua Produk, Tambah Produk, Kategori Produk, Permintaan Motor, Panduan, Statistik, serta menu konten dasar |
+| `motoshop.sales` | Sales MotoShop | tindak lanjut calon pelanggan | Ringkasan, Permintaan Motor, Panduan, Statistik, Profil |
+
+Menu WooCommerce, Jetpack, MailPoet, Pengguna, Plugin, Tampilan, Alat, dan Kasir disembunyikan bagi operator dan sales. Untuk staf yang tidak dapat melihat menu administrator, gunakan akun operator atau sales sesuai tugasnya.
 
 ## Mengenal halaman Ringkasan MotoShop
 
@@ -223,7 +256,7 @@ Halaman Ringkasan menampilkan informasi yang paling sering dibutuhkan operator:
 - akses ke panduan;
 - daftar calon pembeli terbaru.
 
-Ringkasan dibuat sebagai pintu utama operator. Menu bawaan WordPress dan WooCommerce tetap tersedia untuk kebutuhan administrasi lanjutan.
+Ringkasan dibuat sebagai pintu utama operator. Menu bawaan WordPress dan WooCommerce tetap tersedia untuk kebutuhan administrasi lanjutan pada akun administrator, sedangkan operator dan sales hanya melihat menu yang sesuai tugasnya.
 
 ## Mengedit produk yang sudah ada
 

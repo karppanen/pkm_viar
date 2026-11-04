@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('MOTOSHOP_VERSION', '1.9.7');
+define('MOTOSHOP_VERSION', '2.0.2');
 
 function motoshop_setup() {
     load_theme_textdomain('motoshop', get_template_directory() . '/languages');
@@ -80,15 +80,18 @@ function motoshop_branches() {
 
 /**
  * Detail of the branch that owns this website.
+ *
+ * Jam operasional dikonfirmasi mitra: Senin - Sabtu 08.30 - 16.30 WIB,
+ * Minggu tutup. Nomor WhatsApp adalah nomor sales cabang Ciledug.
  */
 function motoshop_primary_branch() {
     return array(
         'name'     => 'Cabang Viar Mahkota Ciledug',
         'company'  => 'PT Mahkota Inti Sejahtera',
         'address'  => 'Jl. KH. Hasyim Ashari No. 70A, Pedurenan, Karang Tengah, Kota Tangerang, Banten',
-        'phone'    => '0855 9122 0003',
-        'whatsapp' => '6285591220003',
-        'hours'    => 'Senin - Sabtu, 08.00 - 17.00 WIB',
+        'phone'    => '0856-5666-7156',
+        'whatsapp' => '6285665667156',
+        'hours'    => 'Senin - Sabtu 08.30 - 16.30 WIB (Minggu tutup)',
         'maps'     => 'https://www.google.com/maps/search/?api=1&query=Jl.+KH.+Hasyim+Ashari+No.+70A+Pedurenan+Karang+Tengah+Kota+Tangerang',
         'instagram'=> 'https://www.instagram.com/viar.mahkota_official/',
     );
@@ -105,6 +108,21 @@ function motoshop_whatsapp_link($message = '') {
         $url = add_query_arg('text', $message, $url);
     }
     return $url;
+}
+
+/**
+ * Preferred visit slots offered in the request form.
+ *
+ * Slots stay inside the branch opening hours so the form never proposes a time
+ * when the showroom is already closed.
+ */
+function motoshop_visit_time_options() {
+    return array(
+        '',
+        'Pagi (08.30 - 11.00)',
+        'Siang (11.00 - 13.30)',
+        'Sore (13.30 - 16.30)',
+    );
 }
 
 /**
@@ -159,6 +177,94 @@ function motoshop_lead_capabilities() {
     );
 }
 
+/**
+ * Capabilities of the operator role.
+ *
+ * The operator may only manage catalogue content. Financial, plugin, user,
+ * theme, and point-of-sale rights stay with the administrator.
+ */
+function motoshop_operator_capabilities() {
+    return array(
+        // WordPress basics.
+        'read'                       => true,
+        'upload_files'               => true,
+        'manage_categories'          => true,
+        'moderate_comments'          => true,
+        // Posts and pages.
+        'edit_posts'                 => true,
+        'edit_others_posts'          => true,
+        'edit_published_posts'       => true,
+        'publish_posts'              => true,
+        'read_private_posts'         => true,
+        'delete_posts'               => true,
+        'delete_others_posts'        => true,
+        'delete_published_posts'     => true,
+        'delete_private_posts'       => true,
+        'edit_private_posts'         => true,
+        'edit_pages'                 => true,
+        'edit_others_pages'          => true,
+        'edit_published_pages'       => true,
+        'publish_pages'              => true,
+        'read_private_pages'         => true,
+        'delete_pages'               => true,
+        'delete_others_pages'        => true,
+        'delete_published_pages'     => true,
+        'delete_private_pages'       => true,
+        'edit_private_pages'         => true,
+        // Catalogue.
+        'edit_products'              => true,
+        'edit_others_products'       => true,
+        'edit_published_products'    => true,
+        'publish_products'           => true,
+        'read_private_products'      => true,
+        'delete_products'            => true,
+        'delete_others_products'     => true,
+        'delete_published_products'  => true,
+        'delete_private_products'    => true,
+        'edit_private_products'      => true,
+        'manage_product_terms'       => true,
+        'edit_product_terms'         => true,
+        'delete_product_terms'       => true,
+        'manage_product_attributes'  => true,
+    );
+}
+
+/**
+ * Capabilities that must never be granted to the operator role.
+ */
+function motoshop_operator_forbidden_capabilities() {
+    return array(
+        'manage_options',
+        'manage_woocommerce',
+        'manage_woocommerce_settings',
+        'view_woocommerce_reports',
+        'manage_woocommerce_analytics',
+        'manage_woocommerce_marketing',
+        'manage_woocommerce_pos',
+        'read_woocommerce_pos',
+        'manage_woocommerce_tax_settings',
+        'manage_woocommerce_shipping',
+        'manage_woocommerce_payment_methods',
+        'edit_woocommerce_tax_classes',
+        'activate_plugins',
+        'install_plugins',
+        'update_plugins',
+        'delete_plugins',
+        'edit_plugins',
+        'edit_themes',
+        'switch_themes',
+        'delete_themes',
+        'edit_users',
+        'create_users',
+        'delete_users',
+        'list_users',
+        'promote_users',
+        'remove_users',
+        'edit_dashboard',
+        'manage_categories_shop',
+    );
+}
+
 function motoshop_register_staff_roles() {
     $lead_caps = motoshop_lead_capabilities();
     foreach (array('administrator', 'shop_manager') as $role_name) {
@@ -170,16 +276,22 @@ function motoshop_register_staff_roles() {
         }
     }
 
-    $shop_manager = get_role('shop_manager');
     $operator = get_role('motoshop_operator');
     if (!$operator) {
         $operator = add_role(
             'motoshop_operator',
             __('Operator MotoShop', 'motoshop'),
-            $shop_manager ? $shop_manager->capabilities : array('read' => true, 'upload_files' => true)
+            motoshop_operator_capabilities()
         );
     }
     if ($operator) {
+        // Apply the intended capability set and revoke anything inherited.
+        foreach (motoshop_operator_capabilities() as $capability => $granted) {
+            $operator->add_cap($capability);
+        }
+        foreach (motoshop_operator_forbidden_capabilities() as $capability) {
+            $operator->remove_cap($capability);
+        }
         foreach ($lead_caps as $capability) {
             $operator->add_cap($capability);
         }
@@ -193,6 +305,14 @@ function motoshop_register_staff_roles() {
         foreach (array('edit_motoshop_leads', 'edit_others_motoshop_leads', 'edit_published_motoshop_leads', 'read_motoshop_lead', 'view_admin_dashboard') as $capability) {
             $sales->add_cap($capability);
         }
+        // The sales role only reads the catalogue, never edits it.
+        $sales->remove_cap('edit_products');
+        $sales->remove_cap('publish_products');
+        $sales->remove_cap('delete_products');
+        $sales->remove_cap('edit_published_products');
+        $sales->remove_cap('edit_others_products');
+        $sales->remove_cap('upload_files');
+        $sales->remove_cap('moderate_comments');
     }
 }
 add_action('init', 'motoshop_register_staff_roles', 6);
@@ -231,13 +351,19 @@ function motoshop_handle_lead() {
     $phone_digits = preg_replace('/\D+/', '', $phone);
     $valid_products = motoshop_product_choices();
     $valid_phone = (bool) preg_match('/^(?:62|0)8[0-9]{7,13}$/', $phone_digits);
-    $valid_times = array('', 'Pagi (08.00 - 11.00)', 'Siang (11.00 - 14.00)', 'Sore (14.00 - 17.00)', 'Malam (17.00 - 20.00)');
+    $valid_times = motoshop_visit_time_options();
 
     if ($visit_date && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $visit_date)) {
         $visit_date = '';
     }
     if (!in_array($visit_time, $valid_times, true)) {
         $visit_time = '';
+    }
+    // The branch is closed on Sunday, so a Sunday visit date is not accepted.
+    if ($visit_date && '0' === wp_date('w', strtotime($visit_date))) {
+        $back = wp_get_referer() ? wp_get_referer() : home_url('/');
+        wp_safe_redirect(add_query_arg('request', 'closed_day', $back) . '#request-form');
+        exit;
     }
 
     if (!$name || !$valid_phone || !$product || !in_array($product, $valid_products, true) || !array_key_exists($branch, motoshop_branches())) {
@@ -416,7 +542,7 @@ function motoshop_request_form($product_name = '') {
             <p class="eyebrow"><?php esc_html_e('Konsultasi pembelian', 'motoshop'); ?></p>
             <h2><?php esc_html_e('Ceritakan motor yang Anda cari.', 'motoshop'); ?></h2>
             <p><?php esc_html_e('Tim cabang akan menghubungi Anda untuk mengecek unit, harga terbaru, pilihan kredit, dan jadwal kunjungan.', 'motoshop'); ?></p>
-            <p class="request-contact"><span><?php esc_html_e('Butuh cepat?', 'motoshop'); ?></span> <a href="<?php echo esc_url(motoshop_whatsapp_link(__('Halo, saya ingin bertanya tentang motor VIAR di Cabang Ciledug.', 'motoshop'))); ?>" target="_blank" rel="noopener">0855 9122 0003</a></p>
+            <p class="request-contact"><span><?php esc_html_e('Butuh cepat?', 'motoshop'); ?></span> <a href="<?php echo esc_url(motoshop_whatsapp_link(__('Halo, saya ingin bertanya tentang motor VIAR di Cabang Ciledug.', 'motoshop'))); ?>" target="_blank" rel="noopener"><?php echo esc_html(motoshop_primary_branch()['phone']); ?></a></p>
         </div>
         <form class="request-form" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" method="post">
             <input type="hidden" name="action" value="motoshop_submit_lead">
@@ -427,6 +553,8 @@ function motoshop_request_form($product_name = '') {
                 <p class="form-notice form-notice--success" role="status"><?php esc_html_e('Permintaan sudah diterima. Tim kami akan segera menghubungi Anda.', 'motoshop'); ?></p>
             <?php elseif ('invalid' === $request_state) : ?>
                 <p class="form-notice form-notice--error" role="alert"><?php esc_html_e('Mohon lengkapi nama, WhatsApp, motor, dan cabang.', 'motoshop'); ?></p>
+            <?php elseif ('closed_day' === $request_state) : ?>
+                <p class="form-notice form-notice--error" role="alert"><?php esc_html_e('Cabang tutup hari Minggu. Silakan pilih tanggal lain atau tentukan jadwal lewat WhatsApp.', 'motoshop'); ?></p>
             <?php endif; ?>
             <div class="form-row form-row--two">
                 <label><?php esc_html_e('Nama lengkap', 'motoshop'); ?><input type="text" name="customer_name" autocomplete="name" required></label>
@@ -449,8 +577,9 @@ function motoshop_request_form($product_name = '') {
             <label><?php esc_html_e('Cabang terdekat', 'motoshop'); ?><select name="branch" required><option value=""><?php esc_html_e('Pilih cabang', 'motoshop'); ?></option><?php foreach (motoshop_branches() as $name => $address) : ?><option value="<?php echo esc_attr($name); ?>" <?php selected('Ciledug', $name); ?>><?php echo esc_html($name); ?><?php echo 'Ciledug' === $name ? ' (' . esc_html__('cabang website ini', 'motoshop') . ')' : ''; ?></option><?php endforeach; ?></select></label>
             <div class="form-row form-row--two">
                 <label><?php esc_html_e('Tanggal kunjungan yang diinginkan', 'motoshop'); ?><input type="date" name="visit_date" min="<?php echo esc_attr(date('Y-m-d')); ?>"></label>
-                <label><?php esc_html_e('Waktu yang nyaman', 'motoshop'); ?><select name="visit_time"><option value=""><?php esc_html_e('Bebas / tentukan lewat WhatsApp', 'motoshop'); ?></option><option><?php esc_html_e('Pagi (08.00 - 11.00)', 'motoshop'); ?></option><option><?php esc_html_e('Siang (11.00 - 14.00)', 'motoshop'); ?></option><option><?php esc_html_e('Sore (14.00 - 17.00)', 'motoshop'); ?></option><option><?php esc_html_e('Malam (17.00 - 20.00)', 'motoshop'); ?></option></select></label>
+                <label><?php esc_html_e('Waktu yang nyaman', 'motoshop'); ?><select name="visit_time"><?php foreach (motoshop_visit_time_options() as $slot) : ?><option value="<?php echo esc_attr($slot); ?>" <?php selected('', $slot); ?>><?php echo esc_html('' === $slot ? __('Bebas / tentukan lewat WhatsApp', 'motoshop') : $slot); ?></option><?php endforeach; ?></select></label>
             </div>
+            <p class="form-hint"><?php esc_html_e('Jam cabang: Senin - Sabtu 08.30 - 16.30 WIB, Minggu tutup. Jadwal pasti dikonfirmasi sales lewat WhatsApp.', 'motoshop'); ?></p>
             <label><?php esc_html_e('Catatan opsional', 'motoshop'); ?><textarea name="customer_message" rows="3" placeholder="Warna, tipe penggunaan, atau hal lain yang perlu kami siapkan"></textarea></label>
             <button class="button button--dark button--full" type="submit"><?php esc_html_e('Kirim permintaan', 'motoshop'); ?><span aria-hidden="true">&#8594;</span></button>
             <p class="form-consent"><?php esc_html_e('Data Anda hanya digunakan untuk menindaklanjuti permintaan ini. Dengan mengirim formulir, Anda bersedia dihubungi oleh tim Mahkota Inti Sejahtera.', 'motoshop'); ?></p>
@@ -751,69 +880,73 @@ function motoshop_single_product_specs() {
     <?php
 }
 
-/**
- * Show the cleaned long description as its own section.
- * The specification table inside the description is removed so the page does
- * not repeat the same data twice.
- */
-function motoshop_single_product_description() {
-    global $product;
-    if (!$product || !is_a($product, 'WC_Product')) {
-        return;
-    }
-
-    $content = (string) $product->get_description();
-    if ('' === trim($content)) {
-        return;
-    }
-
-    $content = preg_replace('/<h3[^>]*>\s*Spesifikasi\s*<\/h3>[\s\S]*/i', '', $content);
-    $content = preg_replace('/<p[^>]*>\s*Spesifikasi di bawah ini diambil dari[\s\S]*?<\/p>/i', '', $content);
-    $content = trim($content);
-    if ('' === $content) {
-        return;
-    }
-    ?>
-    <section class="product-description" aria-labelledby="product-description-title">
-        <div class="product-section-heading">
-            <div>
-                <p class="eyebrow"><?php esc_html_e('Tentang kendaraan', 'motoshop'); ?></p>
-                <h2 id="product-description-title"><?php esc_html_e('Deskripsi', 'motoshop'); ?></h2>
-            </div>
-        </div>
-        <div class="product-description__body"><?php echo wp_kses_post(wpautop($content)); ?></div>
-    </section>
-    <?php
-}
-
 function motoshop_product_tabs($tabs) {
     unset($tabs['additional_information']);
     unset($tabs['reviews']);
     if (isset($tabs['description'])) {
         $tabs['description']['title']    = __('Deskripsi', 'motoshop');
         $tabs['description']['callback'] = 'motoshop_product_description_tab';
+
+        // Hide the tab when the cleaned description adds nothing beyond the
+        // short description already shown next to the gallery.
+        if (!motoshop_product_description_has_extra()) {
+            unset($tabs['description']);
+        }
     }
     return $tabs;
 }
 add_filter('woocommerce_product_tabs', 'motoshop_product_tabs', 20);
 
 /**
- * Render the description tab but strip the <h3>Spesifikasi</h3> heading
- * and the spec list below it — those are already shown by motoshop_single_product_specs().
+ * Cleaned long description: the specification block and the source note are
+ * removed because they are rendered once by motoshop_single_product_specs().
+ */
+function motoshop_clean_product_description($product = null) {
+    if (!$product) {
+        global $product;
+    }
+    if (!$product || !is_a($product, 'WC_Product')) {
+        return '';
+    }
+    $content = (string) $product->get_description();
+    if ('' === trim($content)) {
+        return '';
+    }
+    $content = preg_replace('/<h3[^>]*>\s*Spesifikasi\s*<\/h3>[\s\S]*/i', '', $content);
+    $content = preg_replace('/<p[^>]*>\s*Spesifikasi di bawah ini diambil dari[\s\S]*?<\/p>/i', '', $content);
+    return trim($content);
+}
+
+function motoshop_product_description_has_extra($product = null) {
+    if (!$product) {
+        global $product;
+    }
+    if (!$product || !is_a($product, 'WC_Product')) {
+        return false;
+    }
+    $clean = wp_strip_all_tags(motoshop_clean_product_description($product));
+    $clean = trim(preg_replace('/\s+/', ' ', $clean));
+    if ('' === $clean) {
+        return false;
+    }
+    $short = wp_strip_all_tags($product->get_short_description());
+    $short = trim(preg_replace('/\s+/', ' ', $short));
+    if ('' !== $short && (false !== strpos($clean, $short) || false !== strpos($short, $clean))) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Render the description tab with the redundant specification block removed.
  */
 function motoshop_product_description_tab() {
-    global $product;
-    if (!$product) {
+    $content = motoshop_clean_product_description();
+    if ('' === $content) {
         return;
     }
-    $content = $product->get_description();
-    // Remove everything from the first <h3>Spesifikasi until end-of-content.
-    $content = preg_replace('/<h3[^>]*>\s*Spesifikasi\s*<\/h3>[\s\S]*/i', '', $content);
-    // Also strip the source-note paragraph (already shown in the highlights area).
-    $content = preg_replace('/<p[^>]*>Spesifikasi di bawah ini diambil dari[\s\S]*?<\/p>/i', '', $content);
-    echo '<div class="woocommerce-Tabs-panel woocommerce-Tabs-panel--description panel entry-content wc-tab">';
-    echo wp_kses_post(wpautop(trim($content)));
-    echo '</div>';
+    // WooCommerce already wraps the callback output in a tab panel, so only print the content here.
+    echo wp_kses_post(wpautop($content));
 }
 
 function motoshop_excerpt_length() {
@@ -983,6 +1116,60 @@ function motoshop_register_admin_hub() {
 }
 add_action('admin_menu', 'motoshop_register_admin_hub', 5);
 
+/**
+ * Hide menus that are not part of the daily duty of the dealership staff.
+ *
+ * The administrator keeps the full WordPress and WooCommerce menus.
+ */
+function motoshop_trim_admin_menu_for_staff() {
+    if (current_user_can('manage_options')) {
+        return;
+    }
+
+    // Remove top-level menus that staff never need.
+    foreach (array('edit.php?post_type=product', 'edit.php?post_type=shop_order', 'edit.php?post_type=shop_coupon', 'tools.php', 'themes.php', 'users.php', 'plugins.php', 'options-general.php') as $parent) {
+        remove_menu_page($parent);
+    }
+
+    // WooCommerce panels that expose finances and configuration.
+    foreach (array(
+        'woocommerce',
+        'wcs-settings',
+        'wc-settings',
+        'wc-reports',
+        'wc-admin',
+        'admin.php?page=wc-settings',
+        'admin.php?page=wc-reports',
+        'admin.php?page=wc-admin',
+        'admin.php?page=wc-status',
+        'admin.php?page=wc-analytics',
+        'admin.php?page=wc-marketing',
+        'admin.php?page=wc-orders',
+        'edit.php?post_type=shop_order',
+        'edit.php?post_type=shop_coupon',
+        'edit.php?post_type=shop_order_placehold',
+        'post-new.php?post_type=shop_order_placehold',
+    ) as $page) {
+        remove_submenu_page('woocommerce', $page);
+    }
+
+    // The whole WooCommerce panel is not part of the daily duty of staff.
+    remove_menu_page('woocommerce');
+
+    // WooCommerce POS (point of sale) is offline for this dealership.
+    remove_menu_page('woocommerce-pos');
+    remove_submenu_page('woocommerce', 'woocommerce-pos');
+    remove_submenu_page('woocommerce', 'shop_order_placehold');
+    remove_submenu_page('woocommerce', 'edit.php?post_type=shop_order_placehold');
+    remove_submenu_page('woocommerce', 'post-new.php?post_type=shop_order_placehold');
+
+    // Theme and plugin screens.
+    remove_submenu_page('themes.php', 'themes.php');
+    remove_submenu_page('themes.php', 'theme-editor.php');
+    remove_submenu_page('themes.php', 'widgets.php');
+}
+add_action('admin_menu', 'motoshop_trim_admin_menu_for_staff', 99);
+
 function motoshop_admin_count_leads($status = '') {
     $args = array('post_type' => 'motoshop_lead', 'post_status' => 'publish', 'fields' => 'ids', 'posts_per_page' => 1);
     if ($status) {
@@ -1057,6 +1244,7 @@ function motoshop_render_admin_guide() {
         <div class="motoshop-guide__layout">
             <nav>
                 <a href="#alur">Alur website</a>
+                <a href="#peran">Peran WordPress &amp; WooCommerce</a>
                 <a href="#akun">Login &amp; akun</a>
                 <a href="#tambah-produk">Tambah produk</a>
                 <a href="#spesifikasi">Isi spesifikasi</a>
@@ -1076,20 +1264,26 @@ function motoshop_render_admin_guide() {
                         <li>Pengunjung memilih <strong>Ajukan permintaan</strong> atau <strong>Tanya via WhatsApp</strong>.</li>
                         <li>Permintaan yang dikirim melalui formulir tersimpan di menu <strong>MotoShop &gt; Permintaan Motor</strong>.</li>
                         <li>Sales menghubungi calon pelanggan dan memperbarui status tindak lanjut.</li>
-                        <li>Transaksi tuner, kredit, pembayaran, dan serah terima tetap dilakukan di cabang.</li>
+                        <li>Transaksi tunai, kredit, pembayaran, dan serah terima tetap dilakukan di cabang.</li>
                     </ol>
                 </section>
+                <section id="peran">
+                    <span>02</span><h2>Peran WordPress dan WooCommerce</h2>
+                    <p><strong>WordPress</strong> adalah dasar sistem. Pada website ini WordPress berfungsi sebagai sistem manajemen konten, penyedia pembagian hak akses, pembuat formulir dan penyimpanan data calon pelanggan, serta penyedia statistik internal.</p>
+                    <p><strong>WooCommerce</strong> berfungsi sebagai mesin katalog, bukan sebagai kasir. Struktur produk, kategori, atribut, galeri, pencarian, dan filter diambil dari WooCommerce. Tombol keranjang dihapus, checkout dialihkan ke katalog, dan harga dikosongkan agar tampil pesan Hubungi sales. Semua transaksi tetap dilakukan di cabang.</p>
+                </section>
                 <section id="akun">
-                    <span>02</span><h2>Login dan keamanan akun</h2>
+                    <span>03</span><h2>Login dan keamanan akun</h2>
                     <ol>
                         <li>Gunakan akun pribadi, jangan berbagi akun administrator.</li>
                         <li>Role <strong>Operator MotoShop</strong> dapat menambah produk, kategori, promosi, dan membaca permintaan.</li>
                         <li>Role <strong>Sales MotoShop</strong> hanya membaca permintaan dan mengubah status tindak lanjut.</li>
-                        <li>Ganti kata sandi secara berkala dan jangan menuliskannya di dokumen bersama.</li>
+                        <li>Menu WooCommerce, Plugin, Pengguna, Tampilan, dan Kasir tidak tampil bagi operator dan sales.</li>
+                        <li>Ganti kata sandi pada login pertama dan jangan menuliskannya di dokumen bersama.</li>
                     </ol>
                 </section>
                 <section id="tambah-produk">
-                    <span>03</span><h2>Menambahkan produk WooCommerce</h2>
+                    <span>04</span><h2>Menambahkan produk WooCommerce</h2>
                     <ol>
                         <li>Buka <strong>MotoShop &gt; Tambah Produk</strong>.</li>
                         <li>Isi nama motor dan deskripsi singkat sesuai data resmi VIAR.</li>
@@ -1100,15 +1294,15 @@ function motoshop_render_admin_guide() {
                     </ol>
                 </section>
                 <section id="spesifikasi">
-                    <span>04</span><h2>Menyusun tabel spesifikasi</h2>
+                    <span>05</span><h2>Menyusun tabel spesifikasi</h2>
                     <p>Buka tab <strong>Atribut</strong> pada kotak <strong>Data produk</strong>. Tambahkan satu atribut untuk setiap data, misalnya Tipe Mesin, Volume Langkah, Daya Maksimum, Transmisi, Kapasitas Tangki, Dimensi, dan Berat. Seluruh data spesifikasi harus diambil dari sumber resmi VIAR.</p>
                 </section>
                 <section id="kategori">
-                    <span>05</span><h2>Mengatur kategori</h2>
+                    <span>06</span><h2>Mengatur kategori</h2>
                     <p>Buka <strong>MotoShop &gt; Kategori Produk</strong>. Kategori yang dipakai saat ini: Motor Niaga, Motor Listrik, Sepeda Listrik, Motor Trail, ATV, dan Kendaraan Agrikultur. Kategori ini otomatis tampil pada filter katalog di beranda.</p>
                 </section>
                 <section id="permintaan">
-                    <span>06</span><h2>Menindaklanjuti calon pembeli</h2>
+                    <span>07</span><h2>Menindaklanjuti calon pembeli</h2>
                     <ol>
                         <li>Buka <strong>MotoShop &gt; Permintaan Motor</strong>.</li>
                         <li>Klik nomor WhatsApp untuk menghubungi pelanggan.</li>
@@ -1117,11 +1311,11 @@ function motoshop_render_admin_guide() {
                     </ol>
                 </section>
                 <section id="kunjungan">
-                    <span>07</span><h2>Menangani jadwal kunjungan</h2>
+                    <span>08</span><h2>Menangani jadwal kunjungan</h2>
                     <p>Calon pelanggan dapat mengisi tanggal dan jam yang diinginkan pada formulir. Website hanya mencatat preferensi. Jadwal final ditentukan sales melalui WhatsApp, lalu ditandai dengan status <strong>Janji Kunjungan</strong> atau <strong>Menunggu Konfirmasi</strong>.</p>
                 </section>
                 <section id="promosi">
-                    <span>08</span><h2>Membuat konten promosi</h2>
+                    <span>09</span><h2>Membuat konten promosi</h2>
                     <ol>
                         <li>Buka <strong>Menu &gt; Tulisan baru</strong> atau <strong>Tambah Produk</strong> untuk artikel promosi.</li>
                         <li>Tulis judul, pilih kategori, unggah foto produk, lalu tambahkan tautan ke halaman produk atau WhatsApp.</li>
@@ -1130,11 +1324,11 @@ function motoshop_render_admin_guide() {
                     </ol>
                 </section>
                 <section id="statistik">
-                    <span>09</span><h2>Menilai performa website</h2>
+                    <span>10</span><h2>Menilai performa website</h2>
                     <p>Buka <strong>MotoShop &gt; Statistik</strong> untuk melihat jumlah kunjungan, klik WhatsApp, permintaan masuk, halaman yang paling sering dibuka, produk yang paling diminati, dan sumber pengunjung. Data ini dipakai sebagai bahan evaluasi pemasaran dan laporan akhir.</p>
                 </section>
                 <section id="backup">
-                    <span>10</span><h2>Backup dasar</h2>
+                    <span>11</span><h2>Backup dasar</h2>
                     <ol>
                         <li>Buka <strong>Alat &gt; Ekspor &gt; Semua</strong> untuk menyalin seluruh konten ke file XML.</li>
                         <li>Salin folder <strong>wp-content/uploads</strong> dan file <strong>wp-config.php</strong> ke folder pencadangan.</li>
@@ -1143,7 +1337,7 @@ function motoshop_render_admin_guide() {
                     </ol>
                 </section>
                 <section id="checklist">
-                    <span>11</span><h2>Checklist sebelum terbit</h2>
+                    <span>12</span><h2>Checklist sebelum terbit</h2>
                     <ul>
                         <li>Nama dan kategori motor benar.</li>
                         <li>Foto jelas, latar rapi, dan tidak pecah.</li>

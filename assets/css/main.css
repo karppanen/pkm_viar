@@ -106,3 +106,4 @@ body{font-family:"Segoe UI Variable Text","Segoe UI",Arial,sans-serif;line-heigh
 .motoshop-spec-list span{color:var(--muted)}
 .motoshop-spec-list strong{font-weight:700}
 @media(max-width:860px){.contact-grid{grid-template-columns:1fr;gap:38px}.contact-list li{grid-template-columns:1fr;gap:4px}.product-availability li{flex-direction:column;gap:4px}.product-availability strong{text-align:left}.motoshop-spec-list li{grid-template-columns:1fr;gap:4px}}
+.request-form .form-hint{margin:-6px 0 0;font-size:12px;line-height:1.5;color:var(--muted)}
